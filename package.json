@@ -1,0 +1,28 @@
+{
+  "name": "gulp-swig-compiler-renderer",
+  "version": "0.0.1",
+  "description": "Swig Plugin for Gulp",
+  "keywords": [
+    "gulp",
+    "swig",
+    "template",
+    "render",
+    "renderer",
+    "compiler",
+    "compile"
+  ],
+  "repository": "https://github.com/antixrist/gulp-swig-compiler-renderer",
+  "author": "antixrist <ya.antixrist@gmail.com>",
+  "dependencies": {
+    "event-stream": "~3.0.15",
+    "extend": "^3.0.0",
+    "gulp-util": "~2.2.14",
+    "lodash": "^3.10.1",
+    "swig": "1.4.*"
+  },
+  "main": "index.js",
+  "engines": {
+    "node": ">= 0.4.0"
+  },
+  "devDependencies": {}
+}
