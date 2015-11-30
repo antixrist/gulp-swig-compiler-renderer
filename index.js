@@ -15,7 +15,7 @@ var _ = require('lodash');
  * @property {string}           [compileTemplate='module.exports = <%= template %>;'] If 'mode' == 'compile', then you can define template for export tpl-function string
  */
 var defaults = {
-  swigSetup: function () {},
+  swigSetup: function (swigInstance) {},
   swigOptions: {},
   data: {},
   mode: 'render', // or 'compile'
