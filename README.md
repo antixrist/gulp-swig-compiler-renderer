@@ -7,9 +7,16 @@ $ npm i gulp-swig-compiler-renderer --save-dev
 ```
 
 # Usage
+Compatible with [gulp-data](https://npmjs.org/package/gulp-data)
+
 ```js
 var gulp = require('gulp');
 var gulpSwig = require('gulp-swig-compiler-renderer');
+var gulpData = require('gulp-data');
+
+var getJsonData = function(file) {
+  return require('./examples/' + path.basename(file.path) + '.json');
+};
 
 /**
  * @typedef {{}}                GulpSwigConfig
@@ -29,8 +36,10 @@ var options = {
 
 gulp.task('swig', function (cb) {
   return gulp.src('./src/tpls/**/*.html')
+    .pipe(gulpData(getJsonData))
     .pipe(gulpSwig(options))
     .pipe(gulp.dest('./app'));
 });
 
 ```
+
