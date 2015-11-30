@@ -1,24 +1,23 @@
 var es = require('event-stream');
 var swig = require('swig');
 var gutil = require('gulp-util');
-var ext = gutil.replaceExtension;
 var PluginError = gutil.PluginError;
-var fs = require('fs');
 var path = require('path');
 var extend = require('extend');
 var _ = require('lodash');
-
 
 /**
  * @typedef {{}}                GulpSwigConfig
  * @property {Function}         [swigSetup]
  * @property {SwigOpts}         [swigOptions]
- * @property {string}           [mode=render] 'Render' or 'compile'
- * @property {string}           [compileTemplate] If 'mode' == 'compile', then you can define template for export tpl-function string
+ * @property {{}}               [data]
+ * @property {string}           [mode='render'] 'render' or 'compile'
+ * @property {string}           [compileTemplate='module.exports = <%= template %>;'] If 'mode' == 'compile', then you can define template for export tpl-function string
  */
 var defaults = {
   swigSetup: function () {},
   swigOptions: {},
+  data: {},
   mode: 'render', // or 'compile'
   compileTemplate: 'module.exports = <%= template %>;'
 };
@@ -33,7 +32,7 @@ module.exports = function(options) {
   options = (_.isPlainObject(options)) ? options : {};
 
   /** @type {SwigOpts} swigOptions */
-  var swigOptions = extend({}, defaults, options.swigOptions || {});
+  var swigOptions = extend(true, {}, defaults, options.swigOptions || {});
 
   /** @type {Object} swigInstance */
   var swigInstance = new swig.Swig(swigOptions);
@@ -42,27 +41,31 @@ module.exports = function(options) {
     options.swigSetup(swigInstance);
   }
 
-  if (_.indexOf(['render', 'compile'], options.mode) < 0) {
+  var data = {};
 
+  if (_.isPlainObject(options.data)) {
+    data = options.data;
   }
 
-  var gulpswig = function (file, callback) {
-    var data = {};
+  var gulpSwig = function (file, callback) {
 
-    if (file.data) {
-      data = extend({}, file.data);
+    if (_.isPlainObject(file.data)) {
+      data = extend(true, {}, data, file.data);
     }
 
     try {
-      var compiled = '';
+      var result = '',
+          tplFunc = swigInstance.compile(String(file.contents), {filename: file.path}),
+          tplFuncString = tplFunc.toString();
 
-      if (options.precompile) {
-        var preTpl = swig.precompile(String(file.contents), {filename: file.path});
-        var templateText = preTpl.tpl.toString();
-
-        if (typeof options.precompile === "string") {
-          var gutilOpts = {
-            template: templateText,
+      if (options.mode != 'compile') {
+        // render
+        result = tplFunc(data);
+      } else {
+        // compile
+        if (_.isString(options.compileTemplate) && options.compileTemplate) {
+          var compileTemplateOpts = {
+            template: tplFuncString,
             file: {
               path: file.path,
               name: path.basename(file.path),
@@ -71,22 +74,20 @@ module.exports = function(options) {
             }
           };
 
-          compiled = gutil.template(options.precompile, gutilOpts);
+          result = gutil.template(options.compileTemplate, compileTemplateOpts);
         } else {
-          compiled = templateText;
+          result = tplFuncString;
         }
-      } else {
-        var tplFunc = swig.compile(String(file.contents), {filename: file.path});
-        compiled = tplFunc(data);
       }
 
-      file.contents = new Buffer(compiled);
+      file.contents = new Buffer(result);
       callback(null, file);
+
     } catch (err) {
       callback(new PluginError('gulp-swig', err));
       callback();
     }
   };
 
-  return es.map(gulpswig);
+  return es.map(gulpSwig);
 };

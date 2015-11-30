@@ -3,7 +3,7 @@
 # Installation
 Using npm:
 ```
-$ npm i gulp-swig-compiler-renderer --save
+$ npm i gulp-swig-compiler-renderer --save-dev
 ```
 
 # Usage
