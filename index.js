@@ -55,12 +55,12 @@ module.exports = function(options) {
 
     try {
       var result = '',
-          tplFunc = swigInstance.compile(String(file.contents), {filename: file.path}),
+          tplFunc = swigInstance.precompile(String(file.contents), {filename: file.path}).tpl,
           tplFuncString = tplFunc.toString();
 
       if (options.mode != 'compile') {
         // render
-        result = tplFunc(data);
+        result = swigInstance.run(tplFunc, data);
       } else {
         // compile
         if (_.isString(options.compileTemplate) && options.compileTemplate) {
